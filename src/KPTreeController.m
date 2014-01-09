@@ -31,6 +31,7 @@
 @property (nonatomic) MKCoordinateRegion lastRefreshedMapRegion;
 @property (nonatomic) CGRect mapFrame;
 @property (nonatomic, readwrite) NSArray *gridPolylines;
+@property (nonatomic) NSMutableArray *annotationsShown;
 
 @end
 
@@ -48,6 +49,7 @@
         self.annotationCenterOffset = CGPointMake(30.f, 30.f);
         self.animationDuration = 0.5f;
         self.clusteringEnabled = YES;
+        self.annotationsShown = [[NSMutableArray alloc]init];
     }
     
     return self;
@@ -67,6 +69,11 @@
         self.lastRefreshedMapRect = self.mapView.visibleMapRect;
         self.lastRefreshedMapRegion = self.mapView.region;
     }
+}
+
+- (BOOL)containsAnnotation:(KPAnnotation *)annotation
+{
+    return [self.annotationsShown containsObject:annotation];
 }
 
 // only refresh if:
@@ -196,7 +203,7 @@
     if(animated){
         
         for(KPAnnotation *newCluster in newClusters){
-            
+            [self.annotationsShown addObject:newCluster];
             [self.mapView addAnnotation:newCluster];
             
             // if was part of an old cluster, then we want to animate it from the old to the new (spreading animation)
@@ -215,6 +222,7 @@
                     }
                     
                     [self.mapView removeAnnotation:oldCluster];
+                    [self.annotationsShown removeObject:oldCluster];
                 }
                 
                 // if the new cluster had old annotations, then animate the old annotations to the new one, and remove it
@@ -229,10 +237,12 @@
                                  toAnnotation:newCluster
                                    completion:^(BOOL finished) {
                                        [self.mapView removeAnnotation:oldCluster];
+                                       [self.annotationsShown removeObject:oldCluster];
                                    }];
                     }
                     else {
                         [self.mapView removeAnnotation:oldCluster];
+                        [self.annotationsShown removeObject:oldCluster];
                     }
                     
                 }
@@ -243,6 +253,8 @@
     else {
         [self.mapView removeAnnotations:oldClusters];
         [self.mapView addAnnotations:newClusters];
+        [self.annotationsShown removeObjectsInArray:oldClusters];
+        [self.annotationsShown addObjectsFromArray:newClusters];
     }
         
 }

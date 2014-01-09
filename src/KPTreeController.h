@@ -42,6 +42,7 @@
 - (id)initWithMapView:(MKMapView *)mapView;
 - (void)setAnnotations:(NSArray *)annoations;
 - (void)refresh:(BOOL)animated;
+- (BOOL)containsAnnotation:(KPAnnotation *)annotation;
 
 @end
 
